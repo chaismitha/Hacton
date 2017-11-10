@@ -1,0 +1,146 @@
+---
+title: "Assignment-3"
+output: html_document
+---
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+data=read.csv("D:/datasets/Model_Data.csv")
+data
+nrow(data)
+ncol(data)
+str(data)
+library(tree)
+library(e1071)
+library(class)
+
+
+```
+
+##
+```{r cars}
+summary(data)
+colnames(data)
+```
+
+##  Q2)data exploration, imputation
+```{r}
+#In this data the workclass,occupation and native_country are having '?'values.Here we observed that the worksclass & occupation has missed the data in same rows and mostly from US,so we no need to replace with any imputation methods we can take missed data into one bucket so that we grouped all the data like "?" into other in workclass and occupation attributes.In native_country attribute we grouped the countiers like asian continents etc.
+
+
+```
+
+
+## Q6)Decision Tree/Navies Bayes/Knn Model
+
+```{r}
+#Model 1(Decision Tree)
+set.seed(3)
+sample=sort(sample(nrow(data),nrow(data)*.8))
+
+
+data.train<-data[sample,] #Train data set
+data.test<-data[-sample,] #Test data set
+
+#here salary is an dependent variable,we can predict the model by removing Fnlwgt(because it is an sampling weight it will help for statistical approch and it won't help for models) and education_num(because it is corelated with education feature)
+#but i done this model by using all feature
+
+tree.model=tree(salary~ .,data=data.train)
+tree.model
+summary(tree.model)
+plot(tree.model)
+text(tree.model)
+
+model_prediction=predict(tree.model,data.test)
+model_prediction
+
+maxidx=function(arr){
+  return(which(arr==max(arr)))}
+idx=apply(model_prediction,c(1),maxidx)
+modelprediction=c('No','Yes')[idx]
+confmat=table(modelprediction,data.test$salary)
+confmat
+Decision_accuracy=sum(diag(confmat))/sum(confmat)
+
+#Decision tree Accuracy
+Decision_accuracy
+
+```
+
+
+
+
+```{r}
+##Model2(Naive Bayes)
+
+model=naiveBayes(salary~.,data=data.train)
+model
+
+pred=predict(model,data.test[,-1])
+pred
+
+confmat=table(pred,data.test$salary)
+confmat
+
+Naive_accuracy=sum(diag(confmat))/sum(confmat)
+
+#Naive Bayes Accuracy
+Naive_accuracy
+```
+
+
+
+```{r}
+## Model3(KNN model)
+knn_data=read.csv("D:/datasets/Model_Data.csv")
+set.seed(3)
+for(i in 1:15){
+ knn_data[,i]=as.integer(knn_data[,i])
+}
+dt = sort(sample(nrow(knn_data), nrow(knn_data)*.8))
+knn_train_data<-knn_data[dt,1:14]
+knn_test_data<-knn_data[-dt,1:14]
+
+#dividing test and train data only 1 labled column
+knn_train_label<-knn_data[dt,15]
+knn_test_label<-knn_data[-dt,15]
+
+
+k=15
+#Model for k Nearest neigbour 
+pred_label=knn(train=knn_train_data,test=knn_test_data,cl=knn_train_label,k)
+
+#confusion matrix
+knn_confmat=table(knn_test_label,pred_label)
+#KNN MODEL CONFUSION MATRIX:
+knn_confmat
+#accuracy 
+knn_accuracy = sum(diag(knn_confmat))/sum(knn_confmat)
+#KNN MODEL ACCURACY:
+knn_accuracy
+
+```
+
+# Q7-Accuracy for three models
+
+```{r}
+Decision_accuracy
+Naive_accuracy
+knn_accuracy
+
+
+```
+
+# Q8-Generalization
+```{r}
+#From all the three models(Decision tree/Naive Bayes/Knn Model) the decision tree giving more accuracy comparing to other
+```
+
+
+
+
